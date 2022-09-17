@@ -49,9 +49,21 @@ wget https://raw.githubusercontent.com/liis-dev-team/rn-dependency-installer/mai
 
 ## Step by Step Install
 
-1. Download:\
-`curl -o rn-install https://raw.githubusercontent.com/liis-dev-team/rn-dependency-installer/main/install.sh`
-2. Make it executable:\
-`chmod +x rn-install`
-3. Launch it:\
-`./rn-install`
+1. Download in your project's root directory:
+
+```zsh
+cd <project_root_dir>
+curl -o rn-install https://raw.githubusercontent.com/liis-dev-team/rn-dependency-installer/main/install.sh
+```
+
+2. Make it executable:
+
+```zsh
+chmod +x rn-install
+```
+
+3. Launch it:
+
+```zsh
+./rn-install
+```
