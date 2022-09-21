@@ -1,5 +1,15 @@
 #!/bin/bash
 
+set -Eeo pipefail
+trap error_handle SIGINT SIGTERM ERR EXIT
+
+error_handle() {
+    trap - SIGINT SIGTERM ERR EXIT
+    # script cleanup here
+    echo "Error was raised :("
+    echo "Google the solution yourself of open a new issue"
+}
+
 # Get architecture
 unameArch="$(uname -m)"
 
@@ -109,6 +119,10 @@ if [ -z "$(command -v yarn)" ]; then
   read -r -s -n 1 yarn_status
   if [[ $yarn_status = "" ]]; then
     echo "Installing yarn and node_modules"
+    # Chown global node_modules path
+    sudo chown -R $USER /usr/local/lib/node_modules
+
+    # Install yarn to global
     npm i -g yarn && yarn
   else
     echo "Installing node_modules via npm"
@@ -218,17 +232,18 @@ if [ ! -d "$ANDROID_SDK_ROOT/emulator/" ] || [ ! -d "$ANDROID_SDK_ROOT/platform-
 fi
 
 # Install Android SDK tools
-if [ ! -f "$ANDROID_SDK_ROOT/tools/bin/sdkmanager" ]; then
+if [ ! -f "$ANDROID_SDK_ROOT/tools/bin/sdkmanager" ] || [ ! -f "$ANDROID_SDK_ROOT/tools/bin/avdmanager" ]; then
   echo "Installing Android SDK tools..."
   brew install android-sdk
   # shellcheck disable=SC2016
   which sdkmanager | xargs sh -c 'cp $0 $ANDROID_SDK_ROOT/tools/bin'
   # shellcheck disable=SC2016
   which avdmanager | xargs sh -c 'cp $0 $ANDROID_SDK_ROOT/tools/bin'
+  brew uninstall android-sdk
 fi
 
 # Change to Java 8 (for sdkmanager & avdmanager)
-java8_location="$(java_location 8)"
+java8_location="$(java_location 1.8)"
 export JAVA_HOME=$java8_location
 
 # Install Android Studio dependencies
@@ -241,9 +256,9 @@ echo "Install Android image (for emulators)? [enter]"
 read -r -s -n 1 android_image_status
 if [[ $android_image_status = "" ]]; then
   if [ "$unameArch" = "arm64" ]; then
-  ./sdkmanager --sdk_root="$ANDROID_SDK_ROOT" "system-images;android-31;google_apis_playstore;arm64-v8a"
+  sdkmanager --sdk_root="$ANDROID_SDK_ROOT" "system-images;android-31;google_apis_playstore;arm64-v8a"
   else
-  ./sdkmanager --sdk_root="$ANDROID_SDK_ROOT" "system-images;android-31;default;x86_64"
+  sdkmanager --sdk_root="$ANDROID_SDK_ROOT" "system-images;android-31;default;x86_64"
   fi
 else
   echo "Skipped Android image"
@@ -252,7 +267,7 @@ fi
 echo "Install Android dependencies? [enter]"
 read -r -s -n 1 android_dependencies_status
 if [[ $android_dependencies_status = "" ]]; then
-  ./sdkmanager --sdk_root="$ANDROID_SDK_ROOT" "emulator" "platform-tools" "sources;android-31" "platforms;android-31" "build-tools;30.0.2"
+  sdkmanager --sdk_root="$ANDROID_SDK_ROOT" "emulator" "platform-tools" "sources;android-31" "platforms;android-31" "build-tools;30.0.2"
 else
   echo "Skipped Android dependencies"
 fi
@@ -286,7 +301,7 @@ fi
 # Get device id func (pixel_xl)
 function get_device () {
   cd "$ANDROID_SDK_ROOT/tools/bin" || { echo "Failure: dir not found (get_device) "; exit 1; }
-  ./avdmanager list device 2>&1 | grep "$1" | awk '{ print $2 }'
+  avdmanager list device 2>&1 | grep "$1" | awk '{ print $2 }'
 }
 
 # Add emulator if non was found(avd name: RN-AVD)
@@ -297,11 +312,11 @@ read -r -s -n 1 avd_status
 if [[ $avd_status = "" ]]; then
   cd "$ANDROID_SDK_ROOT/tools/bin" || { echo "Failure: dir not found (avdmanager) "; exit 1; }
 
-  if ! ./avdmanager list avd 2>&1 | grep -q 'Name:'; then
+  if ! avdmanager list avd 2>&1 | grep -q 'Name:'; then
     if [ "$unameArch" = "arm64" ]; then
-      ./avdmanager create avd --name "RN-AVD" --package "system-images;android-31;google_apis_playstore;arm64-v8a" --device "$(get_device pixel_xl)" -c 2000M
+      avdmanager create avd --name "RN-AVD" --package "system-images;android-31;google_apis_playstore;arm64-v8a" --device "$(get_device pixel_xl)" -c 2000M
     else
-      ./avdmanager create avd --name "RN-AVD" --package "system-images;android-31;default;x86_64" --device "$(get_device pixel_xl)" -c 2000M
+      avdmanager create avd --name "RN-AVD" --package "system-images;android-31;default;x86_64" --device "$(get_device pixel_xl)" -c 2000M
     fi
   fi
 else
@@ -313,7 +328,7 @@ if [[ $avd_status = "" ]]; then
   echo "Opening AVD in 5 seconds..."
   sleep 5
   cd "$HOME/Library/Android/sdk/emulator/" || { echo "Failure: dir not found (avdmanager) "; exit 1; }
-  ./emulator @RN-AVD
+  emulator @RN-AVD
 fi
 
 # Exit
