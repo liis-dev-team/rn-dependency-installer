@@ -109,10 +109,6 @@ if [ -z "$(command -v yarn)" ]; then
   read -r -s -n 1 yarn_status
   if [[ $yarn_status = "" ]]; then
     echo "Installing yarn and node_modules"
-    # Chown global node_modules path
-    sudo chown -R $USER /usr/local/lib/node_modules
-
-    # Install yarn to global
     npm i -g yarn && yarn
   else
     echo "Installing node_modules via npm"
@@ -232,7 +228,7 @@ if [ ! -f "$ANDROID_SDK_ROOT/tools/bin/sdkmanager" ]; then
 fi
 
 # Change to Java 8 (for sdkmanager & avdmanager)
-java8_location="$(java_location 8)"
+java8_location="$(java_location 1.8)"
 export JAVA_HOME=$java8_location
 
 # Install Android Studio dependencies
