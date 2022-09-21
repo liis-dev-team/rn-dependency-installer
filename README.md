@@ -35,17 +35,9 @@
 
 ### Using curl
 
-```zsh
-curl -fsSL https://raw.githubusercontent.com/liis-dev-team/rn-dependency-installer/main/install.sh | zsh -s
+```bash
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/liis-dev-team/rn-dependency-installer/main/install.sh)"
 ```
-
-### Using wget
-
-```zsh
-wget https://raw.githubusercontent.com/liis-dev-team/rn-dependency-installer/main/install.sh -O - | zsh -s
-```
-
-> If you're using **bash**, change `| zsh -s` to `| bash -s`
 
 ## Step by Step Install
 
