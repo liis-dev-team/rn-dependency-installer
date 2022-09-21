@@ -1,15 +1,5 @@
 #!/bin/bash
 
-set -Eeo pipefail
-trap error_handle SIGINT SIGTERM ERR EXIT
-
-error_handle() {
-    trap - SIGINT SIGTERM ERR EXIT
-    # script cleanup here
-    echo "Error was raised :("
-    echo "Google the solution yourself of open a new issue"
-}
-
 # Get architecture
 unameArch="$(uname -m)"
 
@@ -119,6 +109,10 @@ if [ -z "$(command -v yarn)" ]; then
   read -r -s -n 1 yarn_status
   if [[ $yarn_status = "" ]]; then
     echo "Installing yarn and node_modules"
+    # Chown global node_modules path
+    sudo chown -R $USER /usr/local/lib/node_modules
+
+    # Install yarn to global
     npm i -g yarn && yarn
   else
     echo "Installing node_modules via npm"
