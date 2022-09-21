@@ -1,5 +1,15 @@
 #!/bin/bash
 
+set -Eeo pipefail
+trap error_handle SIGINT SIGTERM ERR EXIT
+
+error_handle() {
+    trap - SIGINT SIGTERM ERR EXIT
+    # script cleanup here
+    echo "Error was raised :("
+    echo "Google the solution yourself of open a new issue"
+}
+
 # Get architecture
 unameArch="$(uname -m)"
 
