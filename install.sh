@@ -249,16 +249,16 @@ export JAVA_HOME=$java8_location
 # Install Android Studio dependencies
 # Dependencies: "emulator" "platform-tools" "sources;android-31" "platforms;android-31" "build-tools;30.0.2"
 # If Intel "system-images;android-31;default;x86_64"
-# Else "system-images;android-31;google_apis_playstore;arm64-v8a"
+# Else "system-images;android-31;google_apis;arm64-v8a"
 cd "$ANDROID_SDK_ROOT/tools/bin" || { echo "Failure: dir not found (sdkmanager) "; exit 1; }
 
 echo "Install Android image (for emulators)? [enter]"
 read -r -s -n 1 android_image_status
 if [[ $android_image_status = "" ]]; then
   if [ "$unameArch" = "arm64" ]; then
-  sdkmanager --sdk_root="$ANDROID_SDK_ROOT" "system-images;android-31;google_apis_playstore;arm64-v8a"
+  ./sdkmanager --sdk_root="$ANDROID_SDK_ROOT" "system-images;android-31;google_apis;arm64-v8a"
   else
-  sdkmanager --sdk_root="$ANDROID_SDK_ROOT" "system-images;android-31;default;x86_64"
+  ./sdkmanager --sdk_root="$ANDROID_SDK_ROOT" "system-images;android-31;default;x86_64"
   fi
 else
   echo "Skipped Android image"
@@ -267,7 +267,7 @@ fi
 echo "Install Android dependencies? [enter]"
 read -r -s -n 1 android_dependencies_status
 if [[ $android_dependencies_status = "" ]]; then
-  sdkmanager --sdk_root="$ANDROID_SDK_ROOT" "emulator" "platform-tools" "sources;android-31" "platforms;android-31" "build-tools;30.0.2"
+  ./sdkmanager --sdk_root="$ANDROID_SDK_ROOT" "emulator" "platform-tools" "sources;android-31" "platforms;android-31" "build-tools;30.0.2"
 else
   echo "Skipped Android dependencies"
 fi
@@ -292,6 +292,9 @@ if [ -n "$profile_dir" ]; then
       # shellcheck disable=SC2016
       echo 'export PATH=$PATH:$ANDROID_SDK_ROOT/platform-tools'
     } >> "$profile_dir"
+
+    # Source the $profile_dir
+    source "$profile_dir"
   else
     echo "Skipped exporting Android ENVs"
   fi
@@ -301,7 +304,7 @@ fi
 # Get device id func (pixel_xl)
 function get_device () {
   cd "$ANDROID_SDK_ROOT/tools/bin" || { echo "Failure: dir not found (get_device) "; exit 1; }
-  avdmanager list device 2>&1 | grep "$1" | awk '{ print $2 }'
+  ./avdmanager list device 2>&1 | grep "$1" | awk '{ print $2 }'
 }
 
 # Add emulator if non was found(avd name: RN-AVD)
@@ -314,9 +317,9 @@ if [[ $avd_status = "" ]]; then
 
   if ! avdmanager list avd 2>&1 | grep -q 'Name:'; then
     if [ "$unameArch" = "arm64" ]; then
-      avdmanager create avd --name "RN-AVD" --package "system-images;android-31;google_apis_playstore;arm64-v8a" --device "$(get_device pixel_xl)" -c 2000M
+      ./avdmanager create avd --name "RN-AVD" --package "system-images;android-31;google_apis_playstore;arm64-v8a" --device "$(get_device pixel_xl)" -c 2000M
     else
-      avdmanager create avd --name "RN-AVD" --package "system-images;android-31;default;x86_64" --device "$(get_device pixel_xl)" -c 2000M
+      ./avdmanager create avd --name "RN-AVD" --package "system-images;android-31;default;x86_64" --device "$(get_device pixel_xl)" -c 2000M
     fi
   fi
 else
@@ -327,7 +330,6 @@ fi
 if [[ $avd_status = "" ]]; then
   echo "Opening AVD in 5 seconds..."
   sleep 5
-  cd "$HOME/Library/Android/sdk/emulator/" || { echo "Failure: dir not found (avdmanager) "; exit 1; }
   emulator @RN-AVD
 fi
 
