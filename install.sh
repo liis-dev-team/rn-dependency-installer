@@ -26,6 +26,7 @@ if [ -z "$(command -v arch)" ]; then
     echo "https://developer.apple.com/documentation/apple-silicon/about-the-rosetta-translation-environment"
     exit 0
   fi
+fi
 
 # Get OS
 unameOut="$(uname -s)"
